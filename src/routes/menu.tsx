@@ -1,7 +1,7 @@
 import { localIso } from "@/lib/utils";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { Download, Upload, FileDown, UserPlus } from "@/components/app/icons";
+import { Download, Upload, FileDown, UserPlus, Sparkles } from "@/components/app/icons";
 import { ReportSheet } from "@/components/app/ReportSheet";
 import { BlankAttendanceSheet } from "@/components/app/BlankAttendanceSheet";
 import { Button } from "@/components/ui/button";
@@ -70,6 +70,7 @@ function Menu() {
           <PhotoNamesImport onDone={(n) => { setAddOpen(false); setMsg(`${n} talebe eklendi.`); }} />
           <StudentForm initial={emptyStudent} onSubmit={(s) => { addStudent(s); setAddOpen(false); setMsg(`${s.name} eklendi.`); }} />
         </Sheet>
+        <Link to="/ai-tutanak" className={btn}><Sparkles className="h-5 w-5 text-primary" /> AI ile Tutanak Hazırla</Link>
         <button onClick={() => setReportOpen(true)} className={btn}><FileDown className="h-5 w-5 text-primary" /> Yoklama Raporu İndir (PDF / Excel)</button>
         <ReportSheet open={reportOpen} onClose={() => setReportOpen(false)} />
         <Button variant="outline" onClick={() => setBlankOpen(true)} className="h-auto w-full justify-start whitespace-normal py-4"><FileDown className="text-primary" /> Boş Yoklama Çizelgesi İndir (PDF / Excel)</Button>
