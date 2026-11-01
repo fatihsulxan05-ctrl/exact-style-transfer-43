@@ -3,9 +3,6 @@ import { useState } from "react";
 import { Search, User, GraduationCap, Users } from "@/components/app/icons";
 import { Avatar } from "@/components/app/AppShell";
 import { useStore } from "@/lib/store";
-import { BlankAttendanceSheet } from "@/components/app/BlankAttendanceSheet";
-import { Button } from "@/components/ui/button";
-import { FileDown } from "@/components/app/icons";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,7 +21,6 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { students } = useStore();
   const [q, setQ] = useState("");
-  const [blankOpen, setBlankOpen] = useState(false);
   const list = students.filter((s) => s.name.toLocaleLowerCase("tr").includes(q.toLocaleLowerCase("tr")));
   return (
     <>
@@ -69,8 +65,6 @@ function Index() {
           </div>
         </>
       )}
-      <Button variant="outline" onClick={() => setBlankOpen(true)} className="mt-4 h-auto w-full whitespace-normal py-3"><FileDown />Boş Yoklama Çizelgesi İndir (PDF / Excel)</Button>
-      <BlankAttendanceSheet open={blankOpen} onClose={() => setBlankOpen(false)} />
     </>
   );
 }
