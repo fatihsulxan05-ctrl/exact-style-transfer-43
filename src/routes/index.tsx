@@ -66,8 +66,6 @@ function Index() {
           </div>
         </>
       )}
-      <Button variant="outline" onClick={() => setBlankOpen(true)} className="mt-4 h-auto w-full whitespace-normal py-3"><FileDown />Boş Yoklama Çizelgesi İndir (PDF / Excel)</Button>
-      <BlankAttendanceSheet open={blankOpen} onClose={() => setBlankOpen(false)} />
     </>
   );
 }
