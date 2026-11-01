@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Search, User, GraduationCap, Users } from "@/components/app/icons";
 import { Avatar } from "@/components/app/AppShell";
 import { useStore } from "@/lib/store";
-import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
