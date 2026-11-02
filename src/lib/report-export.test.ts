@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import * as XLSX from "xlsx-js-style";
 import { buildChart, buildReport, periodRange } from "./report";
 import { makePdf, makeXlsx } from "./report-export";
