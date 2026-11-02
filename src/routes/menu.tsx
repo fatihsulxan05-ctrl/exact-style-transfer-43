@@ -10,6 +10,7 @@ import { StudentForm, emptyStudent } from "@/components/app/StudentForm";
 import { PhotoNamesImport } from "@/components/app/PhotoNamesImport";
 import { useStore, type State } from "@/lib/store";
 import { exportFiles, importFiles } from "@/lib/attachments";
+import { withTrialStudents } from "@/lib/trial-students";
 
 export const Route = createFileRoute("/menu")({
   head: () => ({
@@ -70,6 +71,13 @@ function Menu() {
           <PhotoNamesImport onDone={(n) => { setAddOpen(false); setMsg(`${n} talebe eklendi.`); }} />
           <StudentForm initial={emptyStudent} onSubmit={(s) => { addStudent(s); setAddOpen(false); setMsg(`${s.name} eklendi.`); }} />
         </Sheet>
+        <Button variant="outline" onClick={() => {
+          const next = withTrialStudents(students);
+          importAll({ students: next, attendance, tutanaklar });
+          setMsg(`${next.length - students.length} deneme talebesi eklendi; mevcut kayıtlar korundu.`);
+        }} disabled={students.filter((student) => student.id.startsWith("trial-student-")).length === 55} className="h-auto w-full justify-start whitespace-normal py-4">
+          <UserPlus className="text-primary" /> 55 deneme talebesi ekle
+        </Button>
         <Link to="/ai-tutanak" className={btn}><Sparkles className="h-5 w-5 text-primary" /> AI ile Tutanak Hazırla</Link>
         <button onClick={() => setReportOpen(true)} className={btn}><FileDown className="h-5 w-5 text-primary" /> Yoklama Raporu İndir (PDF / Excel)</button>
         <ReportSheet open={reportOpen} onClose={() => setReportOpen(false)} />
