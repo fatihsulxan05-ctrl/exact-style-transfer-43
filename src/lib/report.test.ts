@@ -92,10 +92,42 @@ describe("buildChart (namaz takip çizelgesi)", () => {
     expect(c.rows[0]!.katildi).toBe(2);
     expect(c.rows[0]!.katilmadi).toBe(1);
   });
-  it("counts a day with no record as missed, izinli as neither", () => {
+  it("leaves a day with no record blank and counts neither missing nor izinli days as missed", () => {
     expect(c.rows[1]!.days[0]).toEqual(["İ", "İ", "İ", "İ", "İ"]);
     expect(c.rows[1]!.katildi).toBe(0);
-    expect(c.rows[1]!.katilmadi).toBe(2);
+    expect(c.rows[1]?.days[1]).toEqual(["", "", "", "", ""]);
+    expect(c.rows[1]?.katilmadi).toBe(0);
+  });
+});
+
+describe("full-period attendance charts with only two recorded days", () => {
+  const students = [{ id: "s1", name: "Ali" }, { id: "s2", name: "Bekir" }] as Student[];
+  const recorded = [row("first", "2026-11-02", ["Sabah"]), row("second", "2026-11-03", [])];
+
+  it("includes all seven days of a weekly export", () => {
+    const chart = buildChart(students, recorded, periodRange("haftalik", "2026-11-03"));
+    expect(chart.days).toEqual(["2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05", "2026-11-06", "2026-11-07", "2026-11-08"]);
+  });
+
+  it("includes the whole month rather than just its two recorded days", () => {
+    const chart = buildChart(students, recorded, periodRange("aylik", "2026-11-03"));
+    expect(chart.days).toHaveLength(30);
+    expect(chart.days[0]).toBe("2026-11-01");
+    expect(chart.days.at(-1)).toBe("2026-11-30");
+    expect(chartByMonth(chart)[0]?.days).toEqual(chart.days);
+  });
+
+  it("keeps unrecorded days blank without adding absences or diluting recorded totals", () => {
+    const chart = buildChart(students, recorded, periodRange("aylik", "2026-11-03"));
+    expect(chart.rows[0]?.days[0]).toEqual(["", "", "", "", ""]);
+    expect(chart.rows[0]?.days[1]).toEqual(["✓", "X", "X", "X", "X"]);
+    expect(chart.rows[0]?.days[2]).toEqual(["X", "X", "X", "X", "X"]);
+    expect(chart.rows[0]?.days.slice(3).flat().every((mark) => mark === "")).toBe(true);
+    expect(chart.rows[0]).toMatchObject({ katildi: 1, katilmadi: 1 });
+    expect(chartByMonth(chart)[0]?.rows[0]).toMatchObject({ katildi: 1, katilmadi: 1 });
+    expect(chart.rows[1]?.days.flat()).toEqual(Array(150).fill(""));
+    expect(chart.rows[1]).toMatchObject({ katildi: 0, katilmadi: 0 });
+    expect(buildReport(students, recorded).summary[0]).toMatchObject({ gun: 2, toplamVakit: 10 });
   });
 });
 
