@@ -1,4 +1,5 @@
 # Tasks
+- [ ] Include the full selected week/month in attendance exports; leave unrecorded days blank and verify PDF/Excel.
 - [x] Complete per-cell attendance statuses and PDF/Excel totals; verify saved marks and exports.
 - [ ] Add blank PDF/Excel attendance charts for registered students and verify photo import compatibility.
 - [ ] Show tutanak photos full-width, uncropped and unframed.
