@@ -46,7 +46,7 @@ export function ReportSheet({ open, onClose, initialDate, studentId: initialStud
         const report = buildReport(students, rows);
         const title = `${periodLabel} Yoklama Raporu${studentName ? ` — ${studentName}` : ""}`;
         const fileBase = `yoklama-${period}-${range.start}${range.end !== range.start ? `_${range.end}` : ""}${studentName ? `-${studentName.toLocaleLowerCase("tr").replace(/\s+/g, "-")}` : ""}`;
-        const chart = buildChart(studentId ? students.filter((s) => s.id === studentId) : students, rows);
+        const chart = buildChart(studentId ? students.filter((s) => s.id === studentId) : students, rows, range);
         const input = { report, chart, title, rangeText: rangeLabel(range), fileBase };
         const blob = format === "pdf" ? await makePdf(input) : await makeXlsx(input);
         if (!cancelled) setFile({ blob, name: `${fileBase}.${format}` });

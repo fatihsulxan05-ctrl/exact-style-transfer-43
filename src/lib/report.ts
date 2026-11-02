@@ -15,8 +15,8 @@ export type Range = { start: string; end: string };
 
 export const PAPER_COLUMNS = [...VAKITLER, "Ders"];
 
-/** Blank paper charts never derive absence marks from missing attendance. */
-export function buildBlankChart(students: Pick<Student, "id" | "name">[], range: Range) {
+/** Every calendar day in the selected inclusive range, including unrecorded days. */
+function rangeDays(range: Range) {
   const days: string[] = [];
   const cursor = new Date(`${range.start}T00:00:00Z`);
   const end = new Date(`${range.end}T00:00:00Z`);
@@ -25,6 +25,12 @@ export function buildBlankChart(students: Pick<Student, "id" | "name">[], range:
     days.push(cursor.toISOString().slice(0, 10));
     cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
+  return days;
+}
+
+/** Blank paper charts never derive absence marks from missing attendance. */
+export function buildBlankChart(students: Pick<Student, "id" | "name">[], range: Range) {
+  const days = rangeDays(range);
   return {
     days,
     columns: PAPER_COLUMNS,
@@ -146,17 +152,18 @@ export function fileSlug(s: string) {
   );
 }
 
-export type ChartMark = (typeof CELL_LETTER)[keyof typeof CELL_LETTER];
+export type ChartMark = (typeof CELL_LETTER)[keyof typeof CELL_LETTER] | "";
 export type ChartRow = { name: string; days: ChartMark[][]; katildi: number; katilmadi: number };
 
 /**
- * Namaz takip çizelgesi: one row per student, one 5-vakit block per recorded day.
+ * Namaz takip çizelgesi: one row per student, one 5-vakit block per selected day.
+ * Unrecorded student-days remain blank and do not count as absences.
  * ✓ = geldi, G = geç, İ = izinli, H = hasta, X = gelmedi.
  * Katıldığı gün = at least one attended/late prayer; missed = none attended and at least one X.
  */
-export function buildChart(students: Student[], rows: AttendanceRow[]) {
+export function buildChart(students: Student[], rows: AttendanceRow[], range?: Range) {
   const ids = new Set(students.map((s) => s.id));
-  const days = [...new Set(rows.filter((r) => ids.has(r.studentId)).map((r) => r.date))].sort();
+  const days = range ? rangeDays(range) : [...new Set(rows.filter((r) => ids.has(r.studentId)).map((r) => r.date))].sort();
   const byKey = new Map(rows.map((r) => [`${r.studentId}|${r.date}`, r]));
   const list: ChartRow[] = [...students]
     .sort((a, b) => a.name.localeCompare(b.name, "tr"))
@@ -164,6 +171,7 @@ export function buildChart(students: Student[], rows: AttendanceRow[]) {
       let katildi = 0, katilmadi = 0;
       const marks = days.map((d) => {
         const r = byKey.get(`${s.id}|${d}`);
+        if (!r) return VAKITLER.map((): ChartMark => "");
         const result = dayResult(r);
         if (result === "katildi") katildi++;
         if (result === "katilmadi") katilmadi++;
