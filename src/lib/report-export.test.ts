@@ -25,10 +25,19 @@ const input = () => {
   };
 };
 
+/** jsdom'un Blob'u arrayBuffer() desteklemediği için dosyayı FileReader ile oku. */
+const readBlob = (blob: Blob) =>
+  new Promise<Uint8Array>((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(new Uint8Array(fr.result as ArrayBuffer));
+    fr.onerror = () => reject(fr.error);
+    fr.readAsArrayBuffer(blob);
+  });
+
 describe("report downloads", () => {
   it("Excel workbook holds only the namaz takip çizelgesi sheet", async () => {
     const blob = await makeXlsx(input());
-    const wb = XLSX.read(new Uint8Array(await blob.arrayBuffer()), { type: "array" });
+    const wb = XLSX.read(await readBlob(blob), { type: "array" });
     expect(wb.SheetNames).toEqual(["Kas 2026"]);
   });
 
@@ -38,8 +47,9 @@ describe("report downloads", () => {
       new Response(readFileSync(String(url).includes("Bold") ? "public/fonts/DejaVuSans-Bold.ttf" : "public/fonts/DejaVuSans.ttf"));
     try {
       const blob = await makePdf(input());
-      const counts = [...(await blob.text()).matchAll(/\/Count\s+(\d+)/g)].map((m) => Number(m[1]));
-      // Kasım: 30 gün, 10 gün sayfa başına = 3 çizelge sayfası; özet sayfası eklenseydi 4 olurdu.
+      const text = Buffer.from(await readBlob(blob)).toString("latin1");
+      const counts = [...text.matchAll(/\/Count\s+(\d+)/g)].map((m) => Number(m[1]));
+      // Kasım: 30 gün, sayfa başına 10 gün = 3 çizelge sayfası; özet sayfası eklenseydi 4 olurdu.
       expect(Math.max(...counts)).toBe(3);
     } finally {
       globalThis.fetch = original;
