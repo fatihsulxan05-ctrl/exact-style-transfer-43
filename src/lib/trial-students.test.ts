@@ -7,7 +7,9 @@ describe("55 trial students", () => {
     expect(new Set(withTrialStudents([]).map((student) => student.id)).size).toBe(55);
   });
   it("preserves existing students and does not duplicate trial students", () => {
-    const existing = { ...withTrialStudents([])[0], id: "real-student", name: "Ali" };
+    const original = withTrialStudents([])[0];
+    if (!original) throw new Error("Expected a trial student");
+    const existing = { ...original, id: "real-student", name: "Ali" };
     const added = withTrialStudents([existing]);
     expect(added[0]).toEqual(existing);
     expect(added).toHaveLength(56);
