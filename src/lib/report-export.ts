@@ -114,6 +114,18 @@ function chartPdfPages(doc: Pdf, m: MonthChart, first: boolean) {
       doc.setTextColor(0);
     }
 }
+/** Sayfa altı: panel adı, ay adı ve sayfa numarası. */
+function addFooters(doc: Pdf) {
+  const pages = doc.getNumberOfPages();
+  for (let i = 1; i <= pages; i++) {
+    doc.setPage(i);
+    doc.setFont("DejaVu", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(130);
+    const { width, height } = doc.internal.pageSize;
+    doc.text(`Talebe Takip Paneli · ${pageMonth.get(i) ? `${pageMonth.get(i)} · ` : ""}Sayfa ${i}/${pages}`, width / 2, height - 6, { align: "center" });
+  }
+}
 
 export async function makePdf({ report, chart, title, rangeText }: ExportInput): Promise<Blob> {
   const [{ jsPDF }, { default: autoTable }, [regular, bold]] = await Promise.all([
@@ -129,7 +141,12 @@ export async function makePdf({ report, chart, title, rangeText }: ExportInput):
   doc.addFont("DejaVuSans-Bold.ttf", "DejaVu", "bold");
   pageMonth.clear();
   months.forEach((m, i) => chartPdfPages(doc, m, i === 0));
-  if (months.length) doc.addPage("a4", "portrait");
+  if (months.length) {
+    // Çizelge varsa PDF yalnızca namaz takip çizelgesidir: özet ve günlük detay tabloları basılmaz.
+    addFooters(doc);
+    return doc.output("blob");
+  }
+
 
   const green: [number, number, number] = [34, 99, 74];
   doc.setFont("DejaVu", "bold");
@@ -165,15 +182,8 @@ export async function makePdf({ report, chart, title, rangeText }: ExportInput):
     columnStyles: Object.fromEntries([2, 3, 4, 5, 6, 7].map((i) => [i, { halign: "center" as const }])),
   });
 
-  const pages = doc.getNumberOfPages();
-  for (let i = 1; i <= pages; i++) {
-    doc.setPage(i);
-    doc.setFont("DejaVu", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(130);
-    const { width, height } = doc.internal.pageSize;
-    doc.text(`Talebe Takip Paneli · ${pageMonth.get(i) ? `${pageMonth.get(i)} · ` : ""}Sayfa ${i}/${pages}`, width / 2, height - 6, { align: "center" });
-  }
+  addFooters(doc);
+
   return doc.output("blob");
 }
 
@@ -238,9 +248,14 @@ function chartSheet(XLSX: XL, chart: NonNullable<ExportInput["chart"]>, title: s
 export async function makeXlsx({ report, chart, title, rangeText }: ExportInput): Promise<Blob> {
   const XLSX = (await import("xlsx-js-style")) as unknown as XL & typeof import("xlsx");
   const wb = XLSX.utils.book_new();
-  if (chart)
-    for (const m of chartByMonth(chart))
+  const months = chart ? chartByMonth(chart) : [];
+  if (months.length) {
+    // Çizelge varsa Excel yalnızca namaz takip çizelgesi sekmeleridir: özet ve günlük detay sekmeleri eklenmez.
+    for (const m of months)
       XLSX.utils.book_append_sheet(wb, chartSheet(XLSX, m, `${m.label} · Namaz Takip Çizelgesi`) as never, m.label);
+    return new Blob([XLSX.write(wb, { bookType: "xlsx", type: "array" }) as ArrayBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  }
+
 
   const summary = XLSX.utils.aoa_to_sheet([
     [title],
