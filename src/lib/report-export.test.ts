@@ -38,7 +38,7 @@ describe("report downloads", () => {
   it("Excel workbook holds only the namaz takip çizelgesi sheet", async () => {
     const blob = await makeXlsx(input());
     const wb = XLSX.read(await readBlob(blob), { type: "array" });
-    expect(wb.SheetNames).toEqual(["Kas 2026"]);
+    expect(wb.SheetNames).toEqual(["Kasım 2026"]);
   });
 
   it("PDF holds only the çizelge pages, no özet page", async () => {
